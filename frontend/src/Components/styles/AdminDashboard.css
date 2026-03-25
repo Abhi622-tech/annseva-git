@@ -1,0 +1,188 @@
+ 
+.admin-dashboard {
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+}
+
+ 
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+    color: #2e7d32; 
+    font-size: 2.5em;
+    margin: 0;
+}
+ 
+.dashboard-metrics {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.metric-card {
+    background-color: #ffffff;
+    border: 1px solid #2e7d32;  
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 15px;
+    text-align: center;
+    flex: 1 1 250px;
+    transition: transform 0.2s;
+}
+
+.metric-card:hover {
+    transform: scale(1.05);
+}
+
+.metric-card h2 {
+    color: #2e7d32; 
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+.metric-card p {
+    font-size: 1.25em;
+    color: #333;
+    margin: 0;
+}
+ 
+.chart-section {
+    display: flex;
+    flex-wrap: wrap;  
+    justify-content: space-between;  
+    gap: 20px;  
+    margin-top: 30px;
+}
+
+.chart-section h2 {
+    color: #2e7d32; 
+    margin-bottom: 20px;
+    font-size: 2em;
+    width: 100%;
+    text-align: center;
+}
+
+.chart-wrapper {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    width: calc(33% - 20px); /* Take up 1/3 of the available width */
+    max-width: 100%; /* Ensure charts don't exceed container width */
+}
+
+/* Table Section */
+.users-section {
+    margin-top: 40px;
+}
+
+.users-section h2 {
+    color: #2e7d32; /* Dark green */
+    margin-bottom: 20px;
+    font-size: 2em;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.user-table th,
+.user-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.user-table th {
+    background-color: #2e7d32; /* Dark green */
+    color: white;
+    font-weight: bold;
+}
+
+.user-table td {
+    color: #333;
+}
+
+.user-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.user-table tr:hover {
+    background-color: #e0e0e0;
+}
+
+/* Responsive Design for Charts and Layout */
+@media (max-width: 768px) {
+    .dashboard-metrics {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .metric-card {
+        flex: 1 1 100%;
+        margin: 10px 0;
+    }
+
+    .chart-section h2 {
+        font-size: 1.5em;
+    }
+
+    .chart-wrapper {
+        width: 100%; /* Full width on smaller screens */
+        margin-bottom: 20px;
+    }
+
+    .user-table th, .user-table td {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .user-table th {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .chart-wrapper {
+        padding: 15px;
+    }
+
+    .user-table th, .user-table td {
+        font-size: 12px;
+    }
+
+    .user-table th {
+        font-size: 14px;
+    }
+}
+
+/* Large Screen Adjustments */
+@media (min-width: 1200px) {
+    /* Ensure graphs are laid out properly on larger screens */
+    .chart-wrapper {
+        width: calc(33% - 20px); /* Three charts in a row */
+    }
+
+    /* Keep the chart section organized and prevent overflow */
+    .chart-section {
+        flex-wrap: wrap;
+        gap: 30px; /* Space between charts */
+    }
+
+    .dashboard-metrics {
+        justify-content: space-between;
+    }
+
+    .metric-card {
+        flex: 1 1 30%;
+    }
+}

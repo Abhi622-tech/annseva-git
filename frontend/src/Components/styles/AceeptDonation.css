@@ -1,0 +1,170 @@
+.donations-container {
+    padding: 20px;
+  }
+  
+  .donation-card {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .donation-card h4 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #333;
+  }
+  
+  .donation-card p {
+    margin-bottom: 8px;
+    color: #555;
+  }
+  
+  .donation-card button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .donation-card button:disabled {
+    background-color: #ccc;
+  }
+  
+  .donation-card h5 {
+    margin-top: 15px;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  
+  .donation-card .receiver-details {
+    margin-bottom: 20px;
+  }
+  
+  .donation-card .quantity,
+  .donation-card .status,
+  .donation-card .created-at {
+    margin-bottom: 15px;
+  }
+  
+  .donation-card .volunteer-details {
+    margin-top: 20px;
+  }
+  
+  .donation-card .volunteer-details p {
+    margin-bottom: 10px;
+  }
+  
+  .donation-card .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .donation-card .action-buttons button {
+    flex: 1;
+  }
+  
+  .donation-card .status,
+  .donation-card .created-at {
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  .donation-card .receiver-details,
+  .donation-card .quantity,
+  .donation-card .status,
+  .donation-card .created-at,
+  .donation-card .volunteer-details {
+    display: block;
+  }
+  
+  .donation-card .receiver-details,
+  .donation-card .quantity {
+    margin-bottom: 20px;
+  }
+  
+  .donation-card .quantity {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+  
+  /* Mobile Responsive */
+  @media (max-width: 768px) {
+    .donations-container {
+      padding: 10px;
+    }
+  
+    .donation-card {
+      padding: 15px;
+    }
+  
+    .donation-card h4 {
+      font-size: 1.1rem;
+    }
+  
+    .donation-card p {
+      font-size: 0.9rem;
+    }
+  
+    .donation-card button {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      margin: 5px 0;
+    }
+  
+    .donation-card .quantity {
+      font-size: 1rem;
+    }
+  
+    .donation-card .action-buttons {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .donation-card .action-buttons button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+  
+    .donation-card .volunteer-details p {
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .donations-container {
+      padding: 5px;
+    }
+  
+    .donation-card {
+      padding: 10px;
+    }
+  
+    .donation-card h4 {
+      font-size: 1rem;
+    }
+  
+    .donation-card p {
+      font-size: 0.85rem;
+    }
+  
+    .donation-card button {
+      padding: 5px 10px;
+      font-size: 0.85rem;
+    }
+  
+    .donation-card .quantity {
+      font-size: 0.95rem;
+    }
+  
+    .donation-card .action-buttons button {
+      width: 100%;
+      margin-bottom: 8px;
+    }
+  }

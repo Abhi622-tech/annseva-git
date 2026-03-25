@@ -1,0 +1,99 @@
+ 
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7fc;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    width: 80%;
+    margin: 0 auto;
+    padding-top: 20px;
+  }
+   
+  .donation-card {
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .donation-details {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .donation-details h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+  }
+  
+  .donation-details p {
+    color: #777;
+    margin-top: 5px;
+    font-size: 14px;
+  }
+  
+  
+  .donation-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  
+  .donation-buttons button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 150px;
+  }
+  
+  .donation-buttons .accept-btn {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  .donation-buttons .accept-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .donation-buttons .pickup-btn {
+    background-color: #2196f3;
+    color: white;
+  }
+  
+  .donation-buttons .pickup-btn:hover {
+    background-color: #1976d2;
+  }
+  
+  .donation-buttons .pickup-btn:disabled {
+    background-color: #b0bec5;
+    cursor: not-allowed;
+  }
+  
+ 
+  .donation-status {
+    font-size: 14px;
+    font-weight: 500;
+    color: #ff5722;
+    margin-top: 10px;
+  }
+  
+  .donation-status.accepted {
+    color: #4caf50;
+  }
+  
+  .donation-status.picked {
+    color: #2196f3;
+  }
+  

@@ -1,0 +1,99 @@
+.modal-backdrop {
+  
+  background: rgba(38, 41, 38, 0.8) !important; /* Dark green with opacity */
+  backdrop-filter: blur(8px);
+  opacity: 1 !important;
+}
+
+.custom-modal {
+    width: 90% !important;
+    color:green !important;
+  }
+  
+  .image-preview {
+    height: 400px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;  
+    color:green !important;
+  }
+  
+  .image-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; 
+  }
+  .modal-dialog {
+    max-width: 100%; /* Increase width as needed */
+    display: flex;
+    justify-content: center;
+}
+
+.modal-content {
+    width: 100%;
+    padding: 20px;
+}
+
+.custom-modal .modal-content {
+    width: 90% !important;  /* Adjust width to fill the dialog */
+}
+
+  @media (max-width: 992px) {
+    .custom-modal {
+      width: 95% !important;
+    }
+  
+    .image-preview {
+      height: 300px;
+    }
+  
+    .modal {
+      --bs-modal-width: 100%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .custom-modal {
+      width: 100% !important;
+    }
+  
+    .image-preview {
+      height: 250px;
+    }
+  
+    .modal {
+      --bs-modal-width: 100%;
+    }
+  
+    .form-label {
+      font-size: 14px; 
+    }
+  
+    .btn-success {
+      width: 100%;  
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .custom-modal {
+      width: 100% !important;
+    }
+  
+    .image-preview {
+      height: 200px;
+    }
+  
+    .modal {
+      --bs-modal-width: 100%;
+    }
+  
+    .form-label {
+      font-size: 12px;  
+    }
+  }
+  label{
+    color:green !important
+  }

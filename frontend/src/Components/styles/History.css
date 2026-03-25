@@ -1,0 +1,126 @@
+/* Base styles for the entire page */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7fb;
+    margin: 0;
+    padding: 20px;
+  }
+  
+  .history-page {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  
+  /* Styling for the main heading */
+  h1 {
+    text-align: center;
+    color: #2d3748;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+  }
+  
+  /* Card container */
+  .history-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transition: transform 0.3s ease;
+  }
+  
+  .history-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  /* Each card section, with some padding and styled headers */
+  .card-section {
+    padding: 15px 20px;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-section:last-child {
+    margin-bottom: 0;
+  }
+  
+  /* Card section headers */
+  h3 {
+    margin-bottom: 12px;
+    color: #4a5568;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  
+  /* Paragraph styling within the card */
+  p {
+    margin: 8px 0;
+    color: #6b7280;
+    font-size: 1rem;
+  }
+  
+  /* Styling for labels */
+  span {
+    font-weight: bold;
+    color: #2d3748;
+  }
+  
+  /* Styling when no information is available */
+  .no-info {
+    color: #a0aec0;
+    font-style: italic;
+    text-align: center;
+  }
+  
+  /* Mobile responsiveness */
+  @media (max-width: 768px) {
+    body {
+      padding: 10px;
+    }
+  
+    .history-page {
+      padding: 0;
+    }
+  
+    .history-card {
+      padding: 15px;
+      gap: 16px;
+    }
+  
+    .card-section {
+      padding: 12px 15px;
+    }
+  
+    h3 {
+      font-size: 1.1rem;
+    }
+  
+    p {
+      font-size: 0.95rem;
+    }
+  }
+  
+  /* Large screens */
+  @media (min-width: 1024px) {
+    .history-card {
+      flex-direction: row;
+      gap: 30px;
+    }
+  
+    .card-section {
+      flex: 1;
+      margin: 0 10px;
+    }
+  
+    .card-section:last-child {
+      margin-right: 0;
+    }
+  }
+  
+  
