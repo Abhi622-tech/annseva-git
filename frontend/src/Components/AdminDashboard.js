@@ -11,7 +11,10 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { Pie, Bar, Line } from "react-chartjs-2";
+import { Pie, Line } from "react-chartjs-2";
+import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { ckmeans } from "simple-statistics";
 import api from "../api/axios";
 import "./styles/AdminDashboard.css";
 
@@ -36,17 +39,71 @@ const AdminDashboard = () => {
   const [donations, setDonations] = useState([]);
   const [requests, setRequests] = useState([]);
   const [chartData, setChartData] = useState({ pie: null, line: null });
+  const [fakeDonations, setFakeDonations] = useState([]);
+  const [mapData, setMapData] = useState([]);
 
   const fetchData = async () => {
     try {
       const donationsRes = await api.get("/admin/donations");
       const requestsRes = await api.get("/admin/requests");
-      const usersRes = await api.get("/admin/users");
+      await api.get("/admin/users");
       const metricsRes = await api.get("/metrics");
 
       setDonations(donationsRes.data || []);
       setRequests(requestsRes.data || []);
       setMetrics(metricsRes.data || { totalDonations: 0, totalRequests: 0, totalUsers: 0 });
+
+      // Identify fake donations
+      const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+      const now = new Date();
+      const fakes = (donationsRes.data || []).filter(d => 
+        !d.quantity || 
+        d.quantity <= 0 || 
+        (d.status === "pending" && (now - new Date(d.createdAt)) > thirtyDaysMs)
+      );
+      setFakeDonations(fakes);
+
+      // Process Map Data
+      const locationMap = {};
+      (donationsRes.data || []).forEach(d => {
+         const lat = d.location?.lat || d.donorId?.location?.lat;
+         const long = d.location?.long || d.donorId?.location?.long;
+         const landmark = d.location?.landmark || d.donorId?.location?.landmark || "Unknown";
+         
+         if (lat && long) {
+            const key = `${lat.toFixed(3)},${long.toFixed(3)}`;
+            if (!locationMap[key]) {
+               locationMap[key] = { lat, long, landmark, count: 0 };
+            }
+            locationMap[key].count += 1;
+         }
+      });
+      
+      const locations = Object.values(locationMap);
+      if (locations.length > 0) {
+         const counts = locations.map(l => l.count);
+         const uniqueCounts = [...new Set(counts)];
+         const k = Math.min(uniqueCounts.length, 3);
+         
+         if (k > 0) {
+            const clusters = ckmeans(counts, k);
+            locations.forEach(loc => {
+               const clusterIndex = clusters.findIndex(cluster => cluster.includes(loc.count));
+               loc.tier = clusterIndex; 
+               if (k === 3) {
+                  loc.color = clusterIndex === 2 ? "#FF6384" : clusterIndex === 1 ? "#FFCE56" : "#4BC0C0";
+                  loc.density = clusterIndex === 2 ? "High" : clusterIndex === 1 ? "Medium" : "Low";
+               } else if (k === 2) {
+                  loc.color = clusterIndex === 1 ? "#FF6384" : "#4BC0C0";
+                  loc.density = clusterIndex === 1 ? "High" : "Low";
+               } else {
+                  loc.color = "#FFCE56";
+                  loc.density = "Medium";
+               }
+            });
+         }
+      }
+      setMapData(locations);
       
       // Prepare Pie Data
       const statusCounts = metricsRes.data?.statusCounts || [];
@@ -122,12 +179,76 @@ const AdminDashboard = () => {
           {chartData.line && <Line data={chartData.line} />}
         </div>
       </div>
+      <div className="chart-section" style={{ marginTop: '20px' }}>
+        <h2>Donation Density Map (ML Clustered)</h2>
+        <div style={{ height: "400px", width: "100%", borderRadius: "8px", overflow: "hidden" }}>
+          <MapContainer center={[20.5937, 78.9629]} zoom={4} style={{ height: "100%", width: "100%" }}>
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+            {mapData.map((loc, idx) => (
+              <CircleMarker
+                key={idx}
+                center={[loc.lat, loc.long]}
+                radius={loc.count * 3 + 5}
+                pathOptions={{ color: loc.color, fillColor: loc.color, fillOpacity: 0.6 }}
+              >
+                <Popup>
+                  <strong>{loc.landmark}</strong><br />
+                  Donations: {loc.count}<br />
+                  Density: {loc.density}
+                </Popup>
+              </CircleMarker>
+            ))}
+          </MapContainer>
+        </div>
+      </div>
+      
+      <div className="users-section">
+        <h2 style={{ color: 'red' }}>Suspicious / Fake Donations</h2>
+        {fakeDonations.length === 0 ? (
+           <p style={{padding: '10px'}}>No fake donations detected.</p>
+        ) : (
+        <table className="user-table" style={{ border: '2px solid red' }}>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Donor</th>
+              <th>Reason</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fakeDonations.map((donation) => {
+              const age = Math.floor((new Date() - new Date(donation.createdAt)) / (1000 * 60 * 60 * 24));
+              const reason = (!donation.quantity || donation.quantity <= 0) ? "Invalid Quantity" : `Pending for ${age} days`;
+              return (
+              <tr key={donation._id}>
+                <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
+                <td>{donation.donorId?.name || "Anonymous"}</td>
+                <td style={{ color: 'red', fontWeight: 'bold' }}>{reason}</td>
+                <td>
+                  {donation.status !== 'cancelled' && (
+                    <button className="btn-cancel" onClick={() => handleCancel(donation._id, 'donation')}>Cancel Fake</button>
+                  )}
+                </td>
+              </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        )}
+      </div>
+
       <div className="users-section">
         <h2>Donations Management</h2>
         <table className="user-table">
           <thead>
             <tr>
-              <th>Donor</th>
+              <th>Date</th>
+              <th>Donor Details</th>
+              <th>Location</th>
               <th>Quantity</th>
               <th>Status</th>
               <th>Action</th>
@@ -136,8 +257,14 @@ const AdminDashboard = () => {
           <tbody>
             {donations.map((donation) => (
               <tr key={donation._id}>
-                <td>{donation.donorId?.name || "Anonymous"}</td>
-                <td>{donation.quantity}</td>
+                <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <strong>{donation.donorId?.name || "Anonymous"}</strong><br/>
+                  <small>{donation.donorId?.phone || "No Phone"}</small><br/>
+                  <small>{donation.donorId?.email || "No Email"}</small>
+                </td>
+                <td>{donation.location?.landmark || donation.donorId?.location?.landmark || "N/A"}</td>
+                <td>{donation.quantity} kg</td>
                 <td><span className={`status-badge ${donation.status}`}>{donation.status}</span></td>
                 <td>
                   {donation.status !== 'cancelled' && (

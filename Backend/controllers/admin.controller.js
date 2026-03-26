@@ -5,7 +5,7 @@ const Request = require("../models/request.model");
 
 const getAllDonations = errorHandler(async (req, res) => {
   try {
-    const donations = await Donation.find().populate("donorId", "name phone email");
+    const donations = await Donation.find().populate("donorId", "name phone email location");
     res.status(200).json(donations);
   } catch (error) {
     console.error("Error fetching donations:", error);
