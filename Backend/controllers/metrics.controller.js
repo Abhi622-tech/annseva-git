@@ -9,8 +9,6 @@ const getMetrics = async (req, res) => {
     const totalRequests = await Request.countDocuments();
     const totalUsers = await User.countDocuments();
     
-    console.log(`Metrics fetch: Donations=${totalDonations}, Requests=${totalRequests}, Users=${totalUsers}`);
-    
     // Pie chart: Status distribution
     const statusCounts = await Donation.aggregate([
       { $group: { _id: "$status", count: { $sum: 1 } } }

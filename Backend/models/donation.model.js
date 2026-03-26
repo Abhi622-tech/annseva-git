@@ -15,7 +15,7 @@ const donationSchema = new mongoose.Schema(
     quantity: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["pending", "approved", "pickby", "completed", "self_pickup", "pickbyreceiver", "pickbydonor", "requestacceptedbyvolunteer", "pickbyvolunteer", "rejected", "cancelled"],
+      enum: ["pending", "approved", "pickby", "completed", "self_pickup", "assigning_volunteer", "pickbyreceiver", "pickbydonor", "requestacceptedbyvolunteer", "pickbyvolunteer", "rejected", "cancelled"],
       default: "pending",
     },
     shelfLife: { type: Number, required: true },

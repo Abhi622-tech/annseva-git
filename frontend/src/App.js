@@ -22,6 +22,7 @@ import ProtectedRoutes from './Components/ProtectedRoutes'; // Import the Protec
 import VolunteerTracking from './Components/VolunteerTracking';
 import ActiveRequestsPage from './Components/ActiveRequestsPage';
 import ActiveOrganizationsPage from './Components/ActiveOrganizationsPage';
+import AdminHistory from './Components/AdminHistory';
 
 function App() {
   return (
@@ -134,6 +135,14 @@ function App() {
             element={
               <ProtectedRoutes roles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoutes>
+            }
+          />
+          <Route
+            path="/admin/history"
+            element={
+              <ProtectedRoutes roles={['admin']}>
+                <AdminHistory />
               </ProtectedRoutes>
             }
           />

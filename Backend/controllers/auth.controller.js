@@ -1,10 +1,6 @@
 require('dotenv').config();
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const unirest = require('unirest');
-const moment = require('moment');
-const OtpVerificationModel = require('../models/otp.model');
 const User = require('../models/user.model');
 
 // Register User
