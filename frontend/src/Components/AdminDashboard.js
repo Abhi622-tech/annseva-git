@@ -41,16 +41,18 @@ const AdminDashboard = () => {
   const [chartData, setChartData] = useState({ pie: null, line: null });
   const [fakeDonations, setFakeDonations] = useState([]);
   const [mapData, setMapData] = useState([]);
+  const [volunteers, setVolunteers] = useState([]);
 
   const fetchData = async () => {
     try {
       const donationsRes = await api.get("/admin/donations");
       const requestsRes = await api.get("/admin/requests");
-      await api.get("/admin/users");
+      const usersRes = await api.get("/admin/users");
       const metricsRes = await api.get("/metrics");
 
       setDonations(donationsRes.data || []);
       setRequests(requestsRes.data || []);
+      setVolunteers((usersRes.data || []).filter(u => u.role === "volunteer"));
       setMetrics(metricsRes.data || { totalDonations: 0, totalRequests: 0, totalUsers: 0 });
 
       // Identify fake donations
@@ -132,7 +134,40 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, []);
+
+  const handleApprove = async (id, type) => {
+    try {
+      const endpoint = type === 'donation' ? '/admin/donations/approve' : '/admin/requests/approve';
+      const payload = type === 'donation' ? { donationId: id } : { requestId: id };
+      await api.post(endpoint, payload);
+      fetchData();
+    } catch (error) {
+      alert("Failed to approve: " + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleComplete = async (id) => {
+    try {
+      await api.post('/admin/donations/complete', { donationId: id });
+      fetchData();
+    } catch (error) {
+      alert("Failed to complete: " + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleAssign = async (donationId, event) => {
+    const volunteerId = event.target.value;
+    if (!volunteerId) return;
+    try {
+      await api.post('/admin/donations/assign', { donationId, volunteerId });
+      fetchData();
+    } catch (error) {
+      alert("Failed to assign volunteer: " + (error.response?.data?.message || error.message));
+    }
+  };
 
   const handleCancel = async (id, type) => {
     const reason = prompt(`Enter reason for cancelling this ${type}:`);
@@ -267,7 +302,19 @@ const AdminDashboard = () => {
                 <td>{donation.quantity} kg</td>
                 <td><span className={`status-badge ${donation.status}`}>{donation.status}</span></td>
                 <td>
-                  {donation.status !== 'cancelled' && (
+                  {donation.status === 'pending' && (
+                    <button className="btn-approve" onClick={() => handleApprove(donation._id, 'donation')} style={{ marginRight: '5px', backgroundColor: '#4BC0C0', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Approve</button>
+                  )}
+                  {(donation.status === 'approved' || donation.status === 'assigning_volunteer') && (
+                    <select onChange={(e) => handleAssign(donation._id, e)} defaultValue="" style={{ marginRight: '5px' }}>
+                      <option value="" disabled>Assign Volunteer</option>
+                      {volunteers.map(v => <option key={v._id} value={v._id}>{v.name}</option>)}
+                    </select>
+                  )}
+                  {donation.status === 'pickbyvolunteer' && (
+                    <button className="btn-complete" onClick={() => handleComplete(donation._id)} style={{ marginRight: '5px', backgroundColor: '#36A2EB', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Complete</button>
+                  )}
+                  {donation.status !== 'cancelled' && donation.status !== 'completed' && (
                     <button className="btn-cancel" onClick={() => handleCancel(donation._id, 'donation')}>Cancel</button>
                   )}
                 </td>
@@ -294,7 +341,10 @@ const AdminDashboard = () => {
                 <td>{request.quantity}</td>
                 <td><span className={`status-badge ${request.status}`}>{request.status || 'pending'}</span></td>
                 <td>
-                  {request.status !== 'cancelled' && (
+                  {request.status === 'pending' && (
+                    <button className="btn-approve" onClick={() => handleApprove(request._id, 'request')} style={{ marginRight: '5px', backgroundColor: '#4BC0C0', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Approve</button>
+                  )}
+                  {request.status !== 'cancelled' && request.status !== 'completed' && (
                     <button className="btn-cancel" onClick={() => handleCancel(request._id, 'request')}>Cancel</button>
                   )}
                 </td>

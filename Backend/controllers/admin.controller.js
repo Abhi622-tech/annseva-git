@@ -67,10 +67,42 @@ const cancelRequest = errorHandler(async (req, res) => {
   }
 });
 
+const approveDonation = errorHandler(async (req, res) => {
+  const { donationId } = req.body;
+  const donation = await Donation.findByIdAndUpdate(donationId, { status: "approved" }, { new: true });
+  if (!donation) return res.status(404).json({ message: "Donation not found" });
+  res.status(200).json({ success: true, message: "Donation approved.", donation });
+});
+
+const approveRequest = errorHandler(async (req, res) => {
+  const { requestId } = req.body;
+  const request = await Request.findByIdAndUpdate(requestId, { status: "approved" }, { new: true });
+  if (!request) return res.status(404).json({ message: "Request not found" });
+  res.status(200).json({ success: true, message: "Request approved.", request });
+});
+
+const assignVolunteerAdmin = errorHandler(async (req, res) => {
+  const { donationId, volunteerId } = req.body;
+  const donation = await Donation.findByIdAndUpdate(donationId, { volunteerId, needVolunteer: false, status: "pickbyvolunteer" }, { new: true });
+  if (!donation) return res.status(404).json({ message: "Donation not found" });
+  res.status(200).json({ success: true, message: "Volunteer assigned successfully.", donation });
+});
+
+const completeDonationAdmin = errorHandler(async (req, res) => {
+  const { donationId } = req.body;
+  const donation = await Donation.findByIdAndUpdate(donationId, { status: "completed" }, { new: true });
+  if (!donation) return res.status(404).json({ message: "Donation not found" });
+  res.status(200).json({ success: true, message: "Donation marked completed.", donation });
+});
+
 module.exports = {
   getAllDonations,
   getAllRequests,
   getAllUsers,
   cancelDonation,
   cancelRequest,
+  approveDonation,
+  approveRequest,
+  assignVolunteerAdmin,
+  completeDonationAdmin,
 };
