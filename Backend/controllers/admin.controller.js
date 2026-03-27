@@ -15,7 +15,13 @@ const getAllDonations = errorHandler(async (req, res) => {
 
 const getAllRequests = errorHandler(async (req, res) => {
   try {
-    const requests = await Request.find();
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const requests = await Request.find({
+      $or: [
+        { status: { $ne: "cancelled" } },
+        { status: "cancelled", updatedAt: { $gt: oneHourAgo } }
+      ]
+    });
     res.status(200).json(requests);
   } catch (error) {
     console.error("Error fetching requests:", error);
@@ -85,6 +91,47 @@ const assignVolunteerAdmin = errorHandler(async (req, res) => {
   const { donationId, volunteerId } = req.body;
   const donation = await Donation.findByIdAndUpdate(donationId, { volunteerId, needVolunteer: false, status: "pickbyvolunteer" }, { new: true });
   if (!donation) return res.status(404).json({ message: "Donation not found" });
+
+  try {
+    const Notification = require("../models/notification.model");
+    const io = req.app.get("io");
+    const userSockets = req.app.get("userSockets");
+    
+    const donorUser = await User.findById(donation.donorId);
+    let receiverData = null;
+    if (donation.receiverId) {
+       const recUser = await User.findById(donation.receiverId);
+       if (recUser) {
+          receiverData = { name: recUser.name, phone: recUser.phone, location: recUser.location ? recUser.location.landmark : "Unknown" };
+       }
+    }
+
+    const notifInfo = {
+      recipientId: volunteerId,
+      senderId: req.user ? req.user.id : null,
+      type: "admin_assign",
+      message: `Admin assigned you to a pickup!`,
+      referenceId: donation._id,
+      referenceData: {
+        donorName: donorUser ? donorUser.name : "Unknown",
+        donorPhone: donorUser ? donorUser.phone : "Unknown",
+        donorLocation: donation.location ? donation.location.landmark : "Unknown",
+        receiverName: receiverData ? receiverData.name : "Unknown",
+        receiverPhone: receiverData ? receiverData.phone : "Unknown",
+        receiverLocation: receiverData ? receiverData.location : "Unknown",
+        quantity: donation.quantity
+      }
+    };
+
+    const savedNotif = await Notification.create(notifInfo);
+    if (userSockets && io) {
+      const socketId = userSockets.get(volunteerId.toString());
+      if (socketId) io.to(socketId).emit("receive_notification", savedNotif);
+    }
+  } catch(err) {
+    console.error("Error creating admin notification:", err.message);
+  }
+
   res.status(200).json({ success: true, message: "Volunteer assigned successfully.", donation });
 });
 

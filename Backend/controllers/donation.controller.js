@@ -118,6 +118,72 @@ const postDonation = asyncHandler(async (req, res) => {
 
     const savedDonation = await newDonation.save();
 
+    try {
+      if (!isOrganisation && requestId && needsVolunteer) {
+        const donorUser = await User.findById(donorId);
+        let receiverData = null;
+        if (receiverObjectId) {
+          const recUser = await User.findById(receiverObjectId);
+          if (recUser) {
+            receiverData = {
+              name: recUser.name,
+              phone: recUser.phone,
+              location: recUser.location ? recUser.location.landmark : "Unknown"
+            };
+          }
+        }
+
+        const volunteers = await User.find({ role: "volunteer" });
+        const userLat = processedLocation.lat;
+        const userLong = processedLocation.long;
+        
+        const toRad = (val) => (val * Math.PI) / 180;
+        const nearbyVolunteers = volunteers.filter((v) => {
+          if (!v.location || v.location.lat == null) return false;
+          const vLat = toRad(v.location.lat - userLat);
+          const vLon = toRad(v.location.long - userLong);
+          const a =
+            Math.sin(vLat / 2) ** 2 +
+            Math.cos(toRad(userLat)) * Math.cos(toRad(v.location.lat)) * Math.sin(vLon / 2) ** 2;
+          const distanceKm = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          return distanceKm <= 5;
+        });
+
+        const Notification = require("../models/notification.model");
+        const io = req.app.get("io");
+        const userSockets = req.app.get("userSockets");
+
+        const notificationsToSave = nearbyVolunteers.map(vol => ({
+          recipientId: vol._id,
+          senderId: donorId,
+          type: "volunteer_alert",
+          message: `Pickup needed! Donor ${donorUser.name} accepted a request.`,
+          referenceId: savedDonation._id,
+          referenceData: {
+            donorName: donorUser.name,
+            donorPhone: donorUser.phone,
+            donorLocation: processedLocation.landmark,
+            receiverName: receiverData ? receiverData.name : "Unknown",
+            receiverPhone: receiverData ? receiverData.phone : "Unknown",
+            receiverLocation: receiverData ? receiverData.location : "Unknown",
+            quantity: quantity,
+          }
+        }));
+
+        if (notificationsToSave.length > 0) {
+          const savedNotifs = await Notification.insertMany(notificationsToSave);
+          savedNotifs.forEach(notif => {
+            if (userSockets && io) {
+              const socketId = userSockets.get(notif.recipientId.toString());
+              if (socketId) io.to(socketId).emit("receive_notification", notif);
+            }
+          });
+        }
+      }
+    } catch(err) {
+      console.error("Error creating volunteer notifications:", err.message);
+    }
+
     res.status(201).json({ msg: "Donation request sent successfully", savedDonation });
   } catch (err) {
     console.error("Error creating donation:", err);

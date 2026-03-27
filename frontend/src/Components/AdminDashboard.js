@@ -42,6 +42,8 @@ const AdminDashboard = () => {
   const [fakeDonations, setFakeDonations] = useState([]);
   const [mapData, setMapData] = useState([]);
   const [volunteers, setVolunteers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [activeTab, setActiveTab] = useState('overview');
 
   const fetchData = async () => {
     try {
@@ -53,16 +55,34 @@ const AdminDashboard = () => {
       setDonations(donationsRes.data || []);
       setRequests(requestsRes.data || []);
       setVolunteers((usersRes.data || []).filter(u => u.role === "volunteer"));
+      setAllUsers(usersRes.data || []);
       setMetrics(metricsRes.data || { totalDonations: 0, totalRequests: 0, totalUsers: 0 });
 
       // Identify fake donations
+      const tenMinutesMs = 10 * 60 * 1000;
       const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
       const now = new Date();
-      const fakes = (donationsRes.data || []).filter(d => 
-        !d.quantity || 
-        d.quantity <= 0 || 
-        (d.status === "pending" && (now - new Date(d.createdAt)) > thirtyDaysMs)
-      );
+      
+      const allDonations = donationsRes.data || [];
+      const fakes = allDonations.filter((d, index) => {
+        // Basic checks: invalid quantity or very old pending
+        if (!d.quantity || d.quantity <= 0) return true;
+        if (d.status === "pending" && (now - new Date(d.createdAt)) > thirtyDaysMs) return true;
+
+        // Duplicate check: Same donor, same quantity, within 10 minutes
+        const isDuplicate = allDonations.some((other, otherIndex) => {
+          if (index === otherIndex) return false;
+          const donorId = d.donorId?._id || d.donorId;
+          const otherDonorId = other.donorId?._id || other.donorId;
+          if (donorId !== otherDonorId) return false;
+          if (d.quantity !== other.quantity) return false;
+          
+          const timeDiff = Math.abs(new Date(d.createdAt) - new Date(other.createdAt));
+          return timeDiff < tenMinutesMs;
+        });
+
+        return isDuplicate;
+      });
       setFakeDonations(fakes);
 
       // Process Map Data
@@ -186,173 +206,228 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
-      <div className="dashboard-header">
-        <h1>Admin Dashboard</h1>
+      <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>Admin Dashboard {activeTab !== 'overview' && `- ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}</h1>
+        {activeTab !== 'overview' && (
+          <button onClick={() => setActiveTab('overview')} style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px' }}>
+            Back to Overview
+          </button>
+        )}
       </div>
       <div className="dashboard-metrics">
-        <div className="metric-card">
+        <div className="metric-card" onClick={() => setActiveTab('donations')} style={{ cursor: 'pointer' }}>
           <h2>Total Donations</h2>
           <p>{metrics.totalDonations}</p>
         </div>
-        <div className="metric-card">
+        <div className="metric-card" onClick={() => setActiveTab('requests')} style={{ cursor: 'pointer' }}>
           <h2>Total Requests</h2>
           <p>{metrics.totalRequests}</p>
         </div>
-        <div className="metric-card">
+        <div className="metric-card" onClick={() => setActiveTab('users')} style={{ cursor: 'pointer' }}>
           <h2>Total Users</h2>
           <p>{metrics.totalUsers}</p>
         </div>
       </div>
-      <div className="chart-section">
-        <h2>Real-time Statistics</h2>
-        <div className="chart-wrapper">
-          <h3>Donations by Status</h3>
-          {chartData.pie && <Pie data={chartData.pie} />}
-        </div>
-        <div className="chart-wrapper">
-          <h3>Donations Timeline (Last 7 Days)</h3>
-          {chartData.line && <Line data={chartData.line} />}
-        </div>
-      </div>
-      <div className="chart-section" style={{ marginTop: '20px' }}>
-        <h2>Donation Density Map (ML Clustered)</h2>
-        <div style={{ height: "400px", width: "100%", borderRadius: "8px", overflow: "hidden" }}>
-          <MapContainer center={[20.5937, 78.9629]} zoom={4} style={{ height: "100%", width: "100%" }}>
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            {mapData.map((loc, idx) => (
-              <CircleMarker
-                key={idx}
-                center={[loc.lat, loc.long]}
-                radius={loc.count * 3 + 5}
-                pathOptions={{ color: loc.color, fillColor: loc.color, fillOpacity: 0.6 }}
-              >
-                <Popup>
-                  <strong>{loc.landmark}</strong><br />
-                  Donations: {loc.count}<br />
-                  Density: {loc.density}
-                </Popup>
-              </CircleMarker>
-            ))}
-          </MapContainer>
-        </div>
-      </div>
       
-      <div className="users-section">
-        <h2 style={{ color: 'red' }}>Suspicious / Fake Donations</h2>
-        {fakeDonations.length === 0 ? (
-           <p style={{padding: '10px'}}>No fake donations detected.</p>
-        ) : (
-        <table className="user-table" style={{ border: '2px solid red' }}>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Donor</th>
-              <th>Reason</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {fakeDonations.map((donation) => {
-              const age = Math.floor((new Date() - new Date(donation.createdAt)) / (1000 * 60 * 60 * 24));
-              const reason = (!donation.quantity || donation.quantity <= 0) ? "Invalid Quantity" : `Pending for ${age} days`;
-              return (
-              <tr key={donation._id}>
-                <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
-                <td>{donation.donorId?.name || "Anonymous"}</td>
-                <td style={{ color: 'red', fontWeight: 'bold' }}>{reason}</td>
-                <td>
-                  {donation.status !== 'cancelled' && (
-                    <button className="btn-cancel" onClick={() => handleCancel(donation._id, 'donation')}>Cancel Fake</button>
-                  )}
-                </td>
-              </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        )}
-      </div>
+      {activeTab === 'overview' && (
+        <>
+          <div className="chart-section">
+            <h2>Real-time Statistics</h2>
+            <div className="chart-wrapper">
+              <h3>Donations by Status</h3>
+              {chartData.pie && <Pie data={chartData.pie} />}
+            </div>
+            <div className="chart-wrapper">
+              <h3>Donations Timeline (Last 7 Days)</h3>
+              {chartData.line && <Line data={chartData.line} />}
+            </div>
+          </div>
+          <div className="chart-section" style={{ marginTop: '20px' }}>
+            <h2>Donation Density Map (ML Clustered)</h2>
+            <div style={{ height: "400px", width: "100%", borderRadius: "8px", overflow: "hidden" }}>
+              <MapContainer center={[20.5937, 78.9629]} zoom={4} style={{ height: "100%", width: "100%" }}>
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                {mapData.map((loc, idx) => (
+                  <CircleMarker
+                    key={idx}
+                    center={[loc.lat, loc.long]}
+                    radius={loc.count * 3 + 5}
+                    pathOptions={{ color: loc.color, fillColor: loc.color, fillOpacity: 0.6 }}
+                  >
+                    <Popup>
+                      <strong>{loc.landmark}</strong><br />
+                      Donations: {loc.count}<br />
+                      Density: {loc.density}
+                    </Popup>
+                  </CircleMarker>
+                ))}
+              </MapContainer>
+            </div>
+          </div>
+        </>
+      )}
 
-      <div className="users-section">
-        <h2>Donations Management</h2>
-        <table className="user-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Donor Details</th>
-              <th>Location</th>
-              <th>Quantity</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {donations.map((donation) => (
-              <tr key={donation._id}>
-                <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
-                <td>
-                  <strong>{donation.donorId?.name || "Anonymous"}</strong><br/>
-                  <small>{donation.donorId?.phone || "No Phone"}</small><br/>
-                  <small>{donation.donorId?.email || "No Email"}</small>
-                </td>
-                <td>{donation.location?.landmark || donation.donorId?.location?.landmark || "N/A"}</td>
-                <td>{donation.quantity} kg</td>
-                <td><span className={`status-badge ${donation.status}`}>{donation.status}</span></td>
-                <td>
-                  {donation.status === 'pending' && (
-                    <button className="btn-approve" onClick={() => handleApprove(donation._id, 'donation')} style={{ marginRight: '5px', backgroundColor: '#4BC0C0', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Approve</button>
-                  )}
-                  {(donation.status === 'approved' || donation.status === 'assigning_volunteer') && (
-                    <select onChange={(e) => handleAssign(donation._id, e)} defaultValue="" style={{ marginRight: '5px' }}>
-                      <option value="" disabled>Assign Volunteer</option>
-                      {volunteers.map(v => <option key={v._id} value={v._id}>{v.name}</option>)}
-                    </select>
-                  )}
-                  {donation.status === 'pickbyvolunteer' && (
-                    <button className="btn-complete" onClick={() => handleComplete(donation._id)} style={{ marginRight: '5px', backgroundColor: '#36A2EB', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Complete</button>
-                  )}
-                  {donation.status !== 'cancelled' && donation.status !== 'completed' && (
-                    <button className="btn-cancel" onClick={() => handleCancel(donation._id, 'donation')}>Cancel</button>
-                  )}
-                </td>
+      {activeTab === 'users' && (
+        <div className="users-section">
+          <h2>All Users</h2>
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>Name / Email</th>
+                <th>Role</th>
+                <th>Location</th>
+                <th>Donations</th>
+                <th>Requests</th>
+                <th>Deliveries</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="users-section">
-        <h2>Requests Management</h2>
-        <table className="user-table">
-          <thead>
-            <tr>
-              <th>Receiver</th>
-              <th>Quantity</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((request) => (
-              <tr key={request._id}>
-                <td>{request.receiverName}</td>
-                <td>{request.quantity}</td>
-                <td><span className={`status-badge ${request.status}`}>{request.status || 'pending'}</span></td>
-                <td>
-                  {request.status === 'pending' && (
-                    <button className="btn-approve" onClick={() => handleApprove(request._id, 'request')} style={{ marginRight: '5px', backgroundColor: '#4BC0C0', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Approve</button>
-                  )}
-                  {request.status !== 'cancelled' && request.status !== 'completed' && (
-                    <button className="btn-cancel" onClick={() => handleCancel(request._id, 'request')}>Cancel</button>
-                  )}
-                </td>
+            </thead>
+            <tbody>
+              {allUsers.map(user => {
+                const userDonations = donations.filter(d => (d.donorId?._id || d.donorId) === user._id).length;
+                const userRequests = requests.filter(r => (r.receiverId?._id || r.receiverId) === user._id).length;
+                const userDeliveries = donations.filter(d => (d.volunteerId?._id || d.volunteerId) === user._id && d.status === 'completed').length;
+                return (
+                  <tr key={user._id}>
+                    <td>
+                      <strong>{user.name}</strong><br/>
+                      <small>{user.email}</small>
+                    </td>
+                    <td><span className="status-badge" style={{backgroundColor: '#666', color: 'white'}}>{user.role}</span></td>
+                    <td>{user.location?.landmark || "N/A"}</td>
+                    <td>{userDonations}</td>
+                    <td>{userRequests}</td>
+                    <td>{userDeliveries}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {activeTab === 'donations' && (
+        <>
+          <div className="users-section">
+            <h2 style={{ color: 'red' }}>Suspicious / Fake Donations</h2>
+            {fakeDonations.length === 0 ? (
+               <p style={{padding: '10px'}}>No fake donations detected.</p>
+            ) : (
+            <table className="user-table" style={{ border: '2px solid red' }}>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Donor</th>
+                  <th>Reason</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fakeDonations.map((donation) => {
+                  const age = Math.floor((new Date() - new Date(donation.createdAt)) / (1000 * 60 * 60 * 24));
+                  const reason = (!donation.quantity || donation.quantity <= 0) ? "Invalid Quantity" : `Pending for ${age} days`;
+                  return (
+                  <tr key={donation._id}>
+                    <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
+                    <td>{donation.donorId?.name || "Anonymous"}</td>
+                    <td style={{ color: 'red', fontWeight: 'bold' }}>{reason}</td>
+                    <td>
+                      {donation.status !== 'cancelled' && (
+                        <button className="btn-cancel" onClick={() => handleCancel(donation._id, 'donation')}>Cancel Fake</button>
+                      )}
+                    </td>
+                  </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            )}
+          </div>
+
+          <div className="users-section">
+            <h2>Donations Management</h2>
+            <table className="user-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Donor Details</th>
+                  <th>Location</th>
+                  <th>Quantity</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {donations.map((donation) => (
+                  <tr key={donation._id}>
+                    <td>{new Date(donation.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <strong>{donation.donorId?.name || "Anonymous"}</strong><br/>
+                      <small>{donation.donorId?.phone || "No Phone"}</small><br/>
+                      <small>{donation.donorId?.email || "No Email"}</small>
+                    </td>
+                    <td>{donation.location?.landmark || donation.donorId?.location?.landmark || "N/A"}</td>
+                    <td>{donation.quantity} kg</td>
+                    <td><span className={`status-badge ${donation.status}`}>{donation.status}</span></td>
+                    <td>
+                      {donation.status === 'pending' && (
+                        <button className="btn-approve" onClick={() => handleApprove(donation._id, 'donation')} style={{ marginRight: '5px', backgroundColor: '#4BC0C0', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Approve</button>
+                      )}
+                      {(donation.status === 'approved' || donation.status === 'assigning_volunteer') && (
+                        <select onChange={(e) => handleAssign(donation._id, e)} defaultValue="" style={{ marginRight: '5px' }}>
+                          <option value="" disabled>Assign Volunteer</option>
+                          {volunteers.map(v => <option key={v._id} value={v._id}>{v.name}</option>)}
+                        </select>
+                      )}
+                      {donation.status === 'pickbyvolunteer' && (
+                        <button className="btn-complete" onClick={() => handleComplete(donation._id)} style={{ marginRight: '5px', backgroundColor: '#36A2EB', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Complete</button>
+                      )}
+                      {donation.status !== 'cancelled' && donation.status !== 'completed' && (
+                        <button className="btn-cancel" onClick={() => handleCancel(donation._id, 'donation')}>Cancel</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {activeTab === 'requests' && (
+        <div className="users-section">
+          <h2>Requests Management</h2>
+          <table className="user-table">
+            <thead>
+              <tr>
+                <th>Receiver</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {requests.map((request) => (
+                <tr key={request._id}>
+                  <td>{request.receiverName}</td>
+                  <td>{request.quantity}</td>
+                  <td><span className={`status-badge ${request.status}`}>{request.status || 'pending'}</span></td>
+                  <td>
+                    {request.status === 'pending' && (
+                      <button className="btn-approve" onClick={() => handleApprove(request._id, 'request')} style={{ marginRight: '5px', backgroundColor: '#4BC0C0', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px' }}>Approve</button>
+                    )}
+                    {request.status !== 'cancelled' && request.status !== 'completed' && (
+                      <button className="btn-cancel" onClick={() => handleCancel(request._id, 'request')}>Cancel</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

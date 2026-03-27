@@ -110,14 +110,23 @@ const Volunteer = () => {
                                     <div style={{ borderTop: "1px solid #f1f3f5", paddingTop: "15px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                         <div>
                                             <p><strong>Quantity:</strong> {donation.donationDetails?.quantity} kg</p>
-                                            <p><strong>Status:</strong> <span style={{ color: "#27ae60", textTransform: "capitalize" }}>{donation.donationDetails?.status}</span></p>
+                                            <p><strong>Status:</strong> <span style={{ color: donation.type === 'request' ? "#e67e22" : "#27ae60", textTransform: "capitalize" }}>{donation.donationDetails?.status}</span></p>
                                         </div>
-                                        <button 
-                                            onClick={() => handleAcceptDonation(donation.donationId)}
-                                            style={{ backgroundColor: "#27ae60", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "6px", fontWeight: "600", cursor: "pointer" }}
-                                        >
-                                            Accept Delivery
-                                        </button>
+                                        {donation.type === 'request' ? (
+                                             <button 
+                                             disabled
+                                             style={{ backgroundColor: "#bdc3c7", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "6px", fontWeight: "600", cursor: "not-allowed" }}
+                                         >
+                                             Awaiting Donor
+                                         </button>
+                                        ) : (
+                                            <button 
+                                                onClick={() => handleAcceptDonation(donation.donationId)}
+                                                style={{ backgroundColor: "#27ae60", color: "#fff", border: "none", padding: "10px 20px", borderRadius: "6px", fontWeight: "600", cursor: "pointer" }}
+                                            >
+                                                Accept Delivery
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}

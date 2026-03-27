@@ -30,6 +30,54 @@ const postRequest = async (req, res) => {
     });
 
     const savedRequest = await newRequest.save();
+
+    try {
+      const donors = await User.find({ role: "donor" });
+      const userLat = savedRequest.receiverLocation.lat;
+      const userLong = savedRequest.receiverLocation.long;
+      
+      const toRad = (val) => (val * Math.PI) / 180;
+      const nearbyDonors = donors.filter((d) => {
+        if (!d.location || d.location.lat == null) return false;
+        const dLat = toRad(d.location.lat - userLat);
+        const dLon = toRad(d.location.long - userLong);
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(userLat)) * Math.cos(toRad(d.location.lat)) * Math.sin(dLon / 2) ** 2;
+        const distanceKm = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return distanceKm <= 5; // within 5km
+      });
+
+      const Notification = require("../models/notification.model");
+      const io = req.app.get("io");
+      const userSockets = req.app.get("userSockets");
+
+      const notificationsToSave = nearbyDonors.map(donor => ({
+        recipientId: donor._id,
+        senderId: user._id,
+        type: "donor_alert",
+        message: `New food request nearby! ${savedRequest.quantity} items requested by ${savedRequest.receiverName}.`,
+        referenceId: savedRequest._id,
+        referenceData: {
+          receiverName: savedRequest.receiverName,
+          quantity: savedRequest.quantity,
+          location: savedRequest.receiverLocation.name,
+        }
+      }));
+
+      if (notificationsToSave.length > 0) {
+        const savedNotifs = await Notification.insertMany(notificationsToSave);
+        savedNotifs.forEach(notif => {
+          if (userSockets && io) {
+            const socketId = userSockets.get(notif.recipientId.toString());
+            if (socketId) io.to(socketId).emit("receive_notification", notif);
+          }
+        });
+      }
+    } catch(err) {
+      console.error("Error creating donor notifications:", err.message);
+    }
+
     res.status(201).json({ success: true, message: "Request added successfully", request: savedRequest });
   } catch (error) {
     console.error("Error creating request:", error.message);

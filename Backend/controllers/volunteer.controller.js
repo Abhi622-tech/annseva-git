@@ -4,15 +4,16 @@ const User = require("../models/user.model");
 
 const volunteer = async (req, res) => {
   try {
+    // 1. Fetch donations that explicitly need a volunteer
     const donations = await Donation.find({ needVolunteer: true }).populate([
       { path: "donorId", select: "name phone location" },
     ]);
 
-    if (!donations || donations.length === 0) {
-      return res.status(404).json({ message: "No donations require a volunteer." });
-    }
+    // 2. Fetch receiver requests that are pending (volunteers can see these to help coordinate)
+    const receiverRequests = await ReceiverRequest.find({ status: "pending", isActive: true })
+      .populate("receiverId", "name phone location");
 
-    const response = await Promise.all(
+    const donationResponse = await Promise.all(
       donations.map(async (donation) => {
         let receiverDetails = null;
 
@@ -29,6 +30,7 @@ const volunteer = async (req, res) => {
 
         return {
           donationId: donation._id,
+          type: 'donation',
           donor: donation.donorId
             ? {
                 name: donation.donorId.name,
@@ -49,7 +51,29 @@ const volunteer = async (req, res) => {
       })
     );
 
-    res.status(200).json(response);
+    const requestResponse = receiverRequests.map(reqObj => ({
+      donationId: reqObj._id,
+      type: 'request',
+      donor: { name: "Pending Donor", phone: "N/A", location: { landmark: "Waiting for donor" } },
+      receiver: {
+        name: reqObj.receiverName || reqObj.receiverId?.name,
+        phone: reqObj.receiverPhone || reqObj.receiverId?.phone,
+        location: reqObj.receiverLocation || reqObj.receiverId?.location
+      },
+      donationDetails: {
+        quantity: reqObj.quantity,
+        status: "Target: " + reqObj.status,
+        createdAt: reqObj.createdAt
+      }
+    }));
+
+    const finalResponse = [...donationResponse, ...requestResponse];
+
+    if (finalResponse.length === 0) {
+      return res.status(404).json({ message: "No active tasks found." });
+    }
+
+    res.status(200).json(finalResponse);
   } catch (err) {
     console.error("Error fetching volunteer data:", err);
     res.status(500).json({ error: err.message });
