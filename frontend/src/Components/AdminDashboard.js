@@ -15,6 +15,7 @@ import { Pie, Line } from "react-chartjs-2";
 import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { ckmeans } from "simple-statistics";
+import { Link } from "react-router-dom";
 import api from "../api/axios";
 import "./styles/AdminDashboard.css";
 
@@ -266,6 +267,20 @@ const AdminDashboard = () => {
                 ))}
               </MapContainer>
             </div>
+            <div className="map-legend" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#FF6384' }}></div>
+                <span style={{ fontSize: '14px', fontWeight: '500' }}>High Density</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#FFCE56' }}></div>
+                <span style={{ fontSize: '14px', fontWeight: '500' }}>Medium Density</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#4BC0C0' }}></div>
+                <span style={{ fontSize: '14px', fontWeight: '500' }}>Low Density</span>
+              </div>
+            </div>
           </div>
         </>
       )}
@@ -292,7 +307,9 @@ const AdminDashboard = () => {
                 return (
                   <tr key={user._id}>
                     <td>
-                      <strong>{user.name}</strong><br/>
+                      <Link to={`/admin/user/${user._id}`} style={{ textDecoration: 'none', color: '#3498db', fontWeight: 'bold' }}>
+                        {user.name}
+                      </Link><br/>
                       <small>{user.email}</small>
                     </td>
                     <td><span className="status-badge" style={{backgroundColor: '#666', color: 'white'}}>{user.role}</span></td>

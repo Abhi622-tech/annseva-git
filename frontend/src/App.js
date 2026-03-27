@@ -23,6 +23,7 @@ import VolunteerTracking from './Components/VolunteerTracking';
 import ActiveRequestsPage from './Components/ActiveRequestsPage';
 import ActiveOrganizationsPage from './Components/ActiveOrganizationsPage';
 import AdminHistory from './Components/AdminHistory';
+import UserProfile from './Components/UserProfile';
 
 function App() {
   return (
@@ -143,6 +144,14 @@ function App() {
             element={
               <ProtectedRoutes roles={['admin']}>
                 <AdminHistory />
+              </ProtectedRoutes>
+            }
+          />
+          <Route
+            path="/admin/user/:id"
+            element={
+              <ProtectedRoutes roles={['admin']}>
+                <UserProfile />
               </ProtectedRoutes>
             }
           />

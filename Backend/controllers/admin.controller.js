@@ -2,6 +2,7 @@ const errorHandler = require("express-async-handler");
 const Donation = require("../models/donation.model");
 const User = require("../models/user.model");
 const Request = require("../models/request.model");
+const bcrypt = require("bcrypt");
 
 const getAllDonations = errorHandler(async (req, res) => {
   try {
@@ -37,6 +38,36 @@ const getAllUsers = errorHandler(async (req, res) => {
     console.error("Error fetching users:", error);
     res.status(500).json({ message: "Error fetching users" });
   }
+});
+
+const getUserById = errorHandler(async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching user", error: error.message });
+  }
+});
+
+const updateUserById = errorHandler(async (req, res) => {
+  const { name, email, location, currentPassword } = req.body;
+  const user = await User.findById(req.params.id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  // If there's a password check involved, we verify the admin's password or the user's?
+  // User said "asks password confirmation". Usually it's the admin verifying their identity for this action.
+  // We'll compare against the current user's (admin's) password.
+  const admin = await User.findById(req.user.id);
+  const isMatch = await bcrypt.compare(currentPassword, admin.password);
+  if (!isMatch) return res.status(401).json({ message: "Invalid password confirmation" });
+
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (location) user.location = location;
+
+  await user.save();
+  res.status(200).json({ success: true, message: "User updated successfully", user });
 });
 
 const cancelDonation = errorHandler(async (req, res) => {
@@ -152,4 +183,6 @@ module.exports = {
   approveRequest,
   assignVolunteerAdmin,
   completeDonationAdmin,
+  getUserById,
+  updateUserById,
 };

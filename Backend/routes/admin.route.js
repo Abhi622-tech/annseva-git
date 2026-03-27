@@ -9,6 +9,8 @@ const {
   approveRequest,
   assignVolunteerAdmin,
   completeDonationAdmin,
+  getUserById,
+  updateUserById,
 } = require("../controllers/admin.controller");
 
 const router = express.Router();
@@ -21,6 +23,7 @@ router.post("/requests/cancel", cancelRequest);
 router.post("/donations/approve", approveDonation);
 router.post("/requests/approve", approveRequest);
 router.post("/donations/assign", assignVolunteerAdmin);
-router.post("/donations/complete", completeDonationAdmin);
+router.get("/users/:id", getUserById);
+router.post("/users/:id/update", updateUserById);
 
 module.exports = router;
