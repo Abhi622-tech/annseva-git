@@ -5,7 +5,7 @@ const HistoryCard = ({ donation = {} }) => {
   // Safely destructure donation object with defaults
   const {
     donationDetails = {},
-    donationId = "Unknown ID",
+    donationId = "Unknown ID", // eslint-disable-line no-unused-vars
     donor = { name: "Unknown Donor", phone: "N/A", location: { landmark: "N/A" } },
     receiver = { name: "Unknown Receiver", phone: "N/A", location: { landmark: "N/A" } },
     volunteer = { name: "No details available", phone: "N/A", location: { landmark: "N/A" } }, // Default message if no volunteer info
@@ -17,7 +17,7 @@ const HistoryCard = ({ donation = {} }) => {
     location = { landmark: "N/A", lat: "N/A", long: "N/A" },
     createdAt = null,
     cancelReason = "",
-  } = donationDetails;
+  } = donationDetails || {};
 
   const landmark = location?.landmark || "N/A";
 

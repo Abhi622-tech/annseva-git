@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import api from "../api/axios";
-import { FaEdit, FaTimes } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 import "./styles/ProfileCard.css"; // CSS file for styling
 import { toast } from "react-toastify"; // Import toast
 import 'react-toastify/dist/ReactToastify.css';
@@ -56,7 +56,7 @@ const ProfileCardModal = ({ isOpen, closeModal }) => {
     setEditedUser((prev) => ({
       ...prev,
       location: {
-        ...prev.location,
+        ...(prev.location || {}),
         [name]: value,
       },
     }));
@@ -100,9 +100,9 @@ const ProfileCardModal = ({ isOpen, closeModal }) => {
         {
           ...editedUser,
           location: {
-            landmark: editedUser.location.landmark,
-            lat: editedUser.location.lat,
-            long: editedUser.location.long,
+            landmark: editedUser?.location?.landmark,
+            lat: editedUser?.location?.lat,
+            long: editedUser?.location?.long,
           },
         },
         {
@@ -172,7 +172,7 @@ const ProfileCardModal = ({ isOpen, closeModal }) => {
                       <input
                         type="text"
                         name="landmark"
-                        value={editedUser.location.landmark || ""}
+                        value={editedUser?.location?.landmark || ""}
                         onChange={handleLocationChange}
                       />
                     </label>

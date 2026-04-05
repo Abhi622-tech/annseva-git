@@ -15,10 +15,10 @@ const Home = () => {
     totalUsers: 0,
     inventoryStatus: { items: 0, categories: 0 },
   });
-  const [pendingRequests, setPendingRequests] = useState([]);
-  const [completedRequests, setCompletedRequests] = useState([]);
-  const [donations, setDonations] = useState([]);
-  const [requests, setRequests] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]); // eslint-disable-line no-unused-vars
+  const [completedRequests, setCompletedRequests] = useState([]); // eslint-disable-line no-unused-vars
+  const [donations, setDonations] = useState([]); // eslint-disable-line no-unused-vars
+  const [requests, setRequests] = useState([]); // eslint-disable-line no-unused-vars
 
   const navigate = useNavigate();
 

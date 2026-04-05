@@ -27,6 +27,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "seed": "node seed_users.js",
+    "wipe": "node wipe_data.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

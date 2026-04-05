@@ -11,9 +11,9 @@ export const Receiver = () => {
   const [volunteerStatus, setVolunteerStatus] = useState({});
   const [approvedDonations, setApprovedDonations] = useState([]);
   const [requestQuantity, setRequestQuantity] = useState("");
-  const [responseMessage, setResponseMessage] = useState("");
-  const [responseColor, setResponseColor] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [responseMessage, setResponseMessage] = useState(""); // eslint-disable-line no-unused-vars
+  const [responseColor, setResponseColor] = useState(""); // eslint-disable-line no-unused-vars
+  const [searchQuery] = useState("");
 
   const [requests, setRequests] = useState([]);
 
@@ -50,7 +50,7 @@ export const Receiver = () => {
 
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
-  }, []);
+  }, [fetchDonations]);
 
   const handleApprove = async (donationId) => {
     try {

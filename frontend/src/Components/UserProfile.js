@@ -65,7 +65,7 @@ const UserProfile = () => {
         try {
             await api.post(`/admin/users/${id}/update`, {
                 ...editForm,
-                location: { ...user.location, landmark: editForm.landmark },
+                location: { ...user?.location, landmark: editForm.landmark },
                 currentPassword: password // We need the password here for backend verification
             });
             toast.success("Profile updated successfully");
@@ -131,6 +131,12 @@ const UserProfile = () => {
                         <div className="stat-box">
                             <h3>{metrics.deliveries}</h3>
                             <p>Deliveries Completed</p>
+                        </div>
+                    )}
+                    {user.role === 'admin' && (
+                        <div className="stat-box">
+                            <h3>Super</h3>
+                            <p>Admin Access Level</p>
                         </div>
                     )}
                 </div>

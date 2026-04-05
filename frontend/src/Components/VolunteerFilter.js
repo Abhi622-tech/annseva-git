@@ -1,10 +1,8 @@
 import React, { useEffect } from "react";
 
-import { useNavigate } from "react-router-dom";
 import "./styles/VolunteerFilter.css";
 
 const VolunteerFilter = ({ fdonations, donations, activedonations }) => {
-  const navigate = useNavigate();
 
   // console.log(activedonations);
 

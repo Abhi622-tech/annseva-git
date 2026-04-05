@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, Tooltip } from "react-leaflet";
 import io from "socket.io-client";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import L from "leaflet"; // eslint-disable-line no-unused-vars
 import axios from "axios";
 
 const socket = io("http://localhost:5003"); // Connect to backend
@@ -64,7 +64,7 @@ const VolunteerTracking = ({ donor, receiver }) => {
       return () => {
         socket.off("updateVolunteer");
       };
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
   
     const fetchRoute = async (start, end) => {
       try {

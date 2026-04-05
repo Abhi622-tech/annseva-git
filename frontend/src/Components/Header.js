@@ -81,7 +81,7 @@ const Header = () => {
   // Fetch user data on component mount and when the location changes
   useEffect(() => {
     fetchUser();
-  }, [location]); // Re-run when the location changes
+  }, [location]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);

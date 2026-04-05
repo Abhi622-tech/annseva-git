@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import "./styles/Chatbot.css"; // Custom styles
 import api from "../api/axios";
