@@ -12,8 +12,12 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    if (!phone || !password) {
+    if (role !== "admin" && (!phone || !password)) {
       setErrorMessage("Please enter both phone number and password.");
+      return;
+    }
+    if (role === "admin" && !password) {
+      setErrorMessage("Please enter the admin password.");
       return;
     }
 
@@ -38,13 +42,15 @@ const Login = () => {
       <ToastContainer />
       <div className="login-form animated-form">
         <h1>Login</h1>
-        <input
-          type="text"
-          placeholder="Enter your phone number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="input-field"
-        />
+        {role !== "admin" && (
+          <input
+            type="text"
+            placeholder="Enter your phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="input-field"
+          />
+        )}
 
         <input
           type="password"
@@ -56,14 +62,17 @@ const Login = () => {
 
         <select
           value={role}
-          onChange={(e) => setRole(e.target.value)}
+          onChange={(e) => {
+            setRole(e.target.value);
+            setErrorMessage("");
+          }}
           className="input-field"
           style={{ padding: "10px", borderRadius: "5px", marginBottom: "15px", border: "1px solid #ddd" }}
         >
           <option value="donor">Donor</option>
           <option value="receiver">Receiver</option>
           <option value="volunteer">Volunteer</option>
-          <option value="admin">Admin</option>
+          <option value="admin">Admin User (Creator)</option>
         </select>
 
         <button onClick={handleLogin} className="submit-button">

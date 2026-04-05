@@ -43,23 +43,27 @@ const registerHandler = async (req, res) => {
 const loginHandler = async (req, res) => {
   const { phone, password, role } = req.body;
 
-  if (!phone || !password || !role) {
-    return res.status(400).json({ message: 'Phone number, password, and role are required' });
+  if (!password || !role) {
+    return res.status(400).json({ message: 'Password and role are required' });
   }
 
   try {
-    const user = await User.findOne({ phone });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found. Please register first.' });
-    }
-
+    let user;
     if (role === 'admin') {
-      if (!user.isAdmin) {
-        return res.status(401).json({ message: 'Unauthorized. You are not an admin.' });
+      // Find the single creator admin by role instead of phone
+      user = await User.findOne({ role: 'admin', isAdmin: true });
+      if (!user) return res.status(404).json({ message: 'Admin user not found in database.' });
+    } else {
+      if (!phone) return res.status(400).json({ message: 'Phone number is required' });
+      user = await User.findOne({ phone });
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found. Please register first.' });
       }
-    } else if (user.role !== role) {
-      return res.status(401).json({ message: `Unauthorized. You are not registered as a ${role}.` });
+      
+      if (user.role !== role) {
+        return res.status(401).json({ message: `Unauthorized. You are not registered as a ${role}.` });
+      }
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
