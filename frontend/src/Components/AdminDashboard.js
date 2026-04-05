@@ -45,6 +45,7 @@ const AdminDashboard = () => {
   const [volunteers, setVolunteers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [adminName, setAdminName] = useState("");
 
   const fetchData = async () => {
     try {
@@ -156,6 +157,20 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 10000);
+    
+    // Fetch user name from login payload
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setAdminName(user.name || "Abhinav Kumar");
+      } catch (e) {
+        setAdminName("Abhinav Kumar");
+      }
+    } else {
+      setAdminName("Abhinav Kumar"); // Fallback
+    }
+
     return () => clearInterval(interval);
   }, []);
 
@@ -208,7 +223,12 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Admin Dashboard {activeTab !== 'overview' && `- ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}</h1>
+        <div>
+          <h1>Admin Dashboard {activeTab !== 'overview' && `- ${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}`}</h1>
+          <p style={{ margin: 0, marginTop: '5px', fontSize: '1.2rem', color: '#555' }}>
+            Welcome, <strong>{adminName}</strong>!
+          </p>
+        </div>
         {activeTab !== 'overview' && (
           <button onClick={() => setActiveTab('overview')} style={{ padding: '8px 16px', cursor: 'pointer', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px' }}>
             Back to Overview

@@ -13,7 +13,7 @@ async function seed() {
     
     // Create new admin
     await User.create({
-      name: "Creator Admin",
+      name: "Abhinav Kumar",
       phone: "0000000000",
       password: hash,
       email: "admin@annseva.com",
