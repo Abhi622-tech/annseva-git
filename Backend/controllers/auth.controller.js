@@ -50,6 +50,9 @@ const loginHandler = async (req, res) => {
   try {
     let user;
     if (role === 'admin') {
+      if (phone !== 'Abhi242') {
+        return res.status(401).json({ message: 'Invalid admin username' });
+      }
       // Find the single creator admin by role instead of phone
       user = await User.findOne({ role: 'admin', isAdmin: true });
       if (!user) return res.status(404).json({ message: 'Admin user not found in database.' });
