@@ -6,7 +6,7 @@ require("dotenv").config();
 async function seed() {
   try {
     await mongoose.connect(process.env.MONGO_URL);
-    const hash = await bcrypt.hash("Abhi", 10);
+    const hash = await bcrypt.hash("Abhi.242", 10);
     
     // Remove existing admin
     await User.deleteMany({ role: "admin" });

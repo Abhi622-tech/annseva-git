@@ -42,6 +42,21 @@ const Login = () => {
       <ToastContainer />
       <div className="login-form animated-form">
         <h1>Login</h1>
+        <select
+          value={role}
+          onChange={(e) => {
+            setRole(e.target.value);
+            setErrorMessage("");
+          }}
+          className="input-field"
+          style={{ padding: "10px", borderRadius: "5px", marginBottom: "15px", border: "1px solid #ddd" }}
+        >
+          <option value="donor">Donor</option>
+          <option value="receiver">Receiver</option>
+          <option value="volunteer">Volunteer</option>
+          <option value="admin">Admin User</option>
+        </select>
+
         <input
           type="text"
           placeholder={role === "admin" ? "Enter your username" : "Enter your phone number"}
@@ -57,21 +72,6 @@ const Login = () => {
           onChange={(e) => setPassword(e.target.value)}
           className="input-field"
         />
-
-        <select
-          value={role}
-          onChange={(e) => {
-            setRole(e.target.value);
-            setErrorMessage("");
-          }}
-          className="input-field"
-          style={{ padding: "10px", borderRadius: "5px", marginBottom: "15px", border: "1px solid #ddd" }}
-        >
-          <option value="donor">Donor</option>
-          <option value="receiver">Receiver</option>
-          <option value="volunteer">Volunteer</option>
-          <option value="admin">Admin User</option>
-        </select>
 
         <button onClick={handleLogin} className="submit-button">
           Login
